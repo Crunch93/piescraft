@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Piescraft 2D</title>
+
+<style>
+body {
+    margin: 0;
+    background: #87ceeb;
+    font-family: Arial, sans-serif;
+    text-align: center;
+}
+
+canvas {
+    display: block;
+    margin: 10px auto;
+    width: 320px;
+    height: 480px;
+    background: #6ab04c;
+    border: 2px solid black; /* WAŻNE */
+}
+
+.controls {
+    display: flex;
+    justify-content: center;
+}
+
+button {
+    font-size: 20px;
+    margin: 5px;
+    padding: 15px;
+}
+</style>
+</head>
+<body>
+
+<canvas id="game"></canvas>
+
+<div class="controls">
+    <button onclick="move(0,-1)">⬆️</button>
+</div>
+<div class="controls">
+    <button onclick="move(-1,0)">⬅️</button>
+    <button onclick="dig()">⛏️ KOP</button>
+    <button onclick="move(1,0)">➡️</button>
+</div>
+<div class="controls">
+    <button onclick="move(0,1)">⬇️</button>
+</div>
+
+<script>
+const canvas = document.getElementById("game");
+canvas.width = 320;
+canvas.height = 480;
+
+const ctx = canvas.getContext("2d");
+
+const TILE = 32;
+const COLS = 10;
+const ROWS = 15;
+
+let score = 0;
+
+// świat
+let world = [];
+for (let y = 0; y < ROWS; y++) {
+    world[y] = [];
+    for (let x = 0; x < COLS; x++) {
+        world[y][x] = y > 5 ? (Math.random() < 0.1 ? 2 : 1) : 0;
+    }
+}
+
+// pies
+const player = { x: 5, y: 4 };
+
+function move(dx, dy) {
+    let nx = player.x + dx;
+    let ny = player.y + dy;
+    if (nx < 0 || nx >= COLS || ny < 0 || ny >= ROWS) return;
+    if (world[ny][nx] === 0) {
+        player.x = nx;
+        player.y = ny;
+    }
+}
+
+function dig() {
+    let by = player.y + 1;
+    if (world[by] && world[by][player.x] !== 0) {
+        if (world[by][player.x] === 2) score++;
+        world[by][player.x] = 0;
+    }
+}
+
+function gravity() {
+    let below = player.y + 1;
+    if (below < ROWS && world[below][player.x] === 0) {
+        player.y++;
+    }
+}
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    for (let y = 0; y < ROWS; y++) {
+        for (let x = 0; x < COLS; x++) {
+            if (world[y][x] === 1) {
+                ctx.fillStyle = "#8B4513";
+                ctx.fillRect(x*TILE, y*TILE, TILE, TILE);
+            }
+            if (world[y][x] === 2) {
+                ctx.fillStyle = "white";
+                ctx.fillRect(x*TILE+8, y*TILE+8, 16, 16);
+            }
+        }
+    }
+
+    ctx.fillStyle = "brown";
+    ctx.fillRect(player.x*TILE, player.y*TILE, TILE, TILE);
+
+    ctx.fillStyle = "black";
+    ctx.fillText("Kości: " + score, 10, 20);
+}
+
+function loop() {
+    gravity();
+    draw();
+    requestAnimationFrame(loop);
+}
+
+loop();
+</script>
+
+</body>
+</html>
