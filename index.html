@@ -2,35 +2,45 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport"
+      content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Piescraft 2D</title>
 
 <style>
-body {
+html, body {
     margin: 0;
+    padding: 0;
     background: #87ceeb;
-    font-family: Arial, sans-serif;
-    text-align: center;
+    overflow: hidden;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
-canvas {
+#game {
     display: block;
-    margin: 10px auto;
-    width: 320px;
-    height: 480px;
+    margin: auto;
     background: #6ab04c;
-    border: 2px solid black; /* WAŻNE */
 }
 
 .controls {
+    position: fixed;
+    bottom: 10px;
+    width: 100%;
     display: flex;
     justify-content: center;
+    gap: 10px;
 }
 
 button {
-    font-size: 20px;
-    margin: 5px;
-    padding: 15px;
+    font-size: 18px;
+    padding: 14px;
+    border-radius: 10px;
+    border: none;
+    background: #ffffffcc;
+}
+button:active {
+    background: #ddd;
 }
 </style>
 </head>
@@ -39,23 +49,22 @@ button {
 <canvas id="game"></canvas>
 
 <div class="controls">
-    <button onclick="move(0,-1)">⬆️</button>
-</div>
-<div class="controls">
-    <button onclick="move(-1,0)">⬅️</button>
-    <button onclick="dig()">⛏️ KOP</button>
-    <button onclick="move(1,0)">➡️</button>
-</div>
-<div class="controls">
-    <button onclick="move(0,1)">⬇️</button>
+    <button ontouchstart="move(-1,0)">⬅️</button>
+    <button ontouchstart="move(0,-1)">⬆️</button>
+    <button ontouchstart="dig()">⛏️</button>
+    <button ontouchstart="move(0,1)">⬇️</button>
+    <button ontouchstart="move(1,0)">➡️</button>
 </div>
 
 <script>
 const canvas = document.getElementById("game");
-canvas.width = 320;
-canvas.height = 480;
-
 const ctx = canvas.getContext("2d");
+
+function resize() {
+    canvas.width = 320;
+    canvas.height = 480;
+}
+resize();
 
 const TILE = 32;
 const COLS = 10;
@@ -68,7 +77,7 @@ let world = [];
 for (let y = 0; y < ROWS; y++) {
     world[y] = [];
     for (let x = 0; x < COLS; x++) {
-        world[y][x] = y > 5 ? (Math.random() < 0.1 ? 2 : 1) : 0;
+        world[y][x] = y > 5 ? (Math.random() < 0.12 ? 2 : 1) : 0;
     }
 }
 
@@ -76,8 +85,8 @@ for (let y = 0; y < ROWS; y++) {
 const player = { x: 5, y: 4 };
 
 function move(dx, dy) {
-    let nx = player.x + dx;
-    let ny = player.y + dy;
+    const nx = player.x + dx;
+    const ny = player.y + dy;
     if (nx < 0 || nx >= COLS || ny < 0 || ny >= ROWS) return;
     if (world[ny][nx] === 0) {
         player.x = nx;
@@ -86,7 +95,7 @@ function move(dx, dy) {
 }
 
 function dig() {
-    let by = player.y + 1;
+    const by = player.y + 1;
     if (world[by] && world[by][player.x] !== 0) {
         if (world[by][player.x] === 2) score++;
         world[by][player.x] = 0;
@@ -94,7 +103,7 @@ function dig() {
 }
 
 function gravity() {
-    let below = player.y + 1;
+    const below = player.y + 1;
     if (below < ROWS && world[below][player.x] === 0) {
         player.y++;
     }
@@ -110,17 +119,20 @@ function draw() {
                 ctx.fillRect(x*TILE, y*TILE, TILE, TILE);
             }
             if (world[y][x] === 2) {
-                ctx.fillStyle = "white";
-                ctx.fillRect(x*TILE+8, y*TILE+8, 16, 16);
+                ctx.fillStyle = "#fff";
+                ctx.beginPath();
+                ctx.arc(x*TILE+16, y*TILE+16, 7, 0, Math.PI*2);
+                ctx.fill();
             }
         }
     }
 
-    ctx.fillStyle = "brown";
+    ctx.fillStyle = "#7a3e1d";
     ctx.fillRect(player.x*TILE, player.y*TILE, TILE, TILE);
 
-    ctx.fillStyle = "black";
-    ctx.fillText("Kości: " + score, 10, 20);
+    ctx.fillStyle = "#000";
+    ctx.font = "16px Arial";
+    ctx.fillText("Kości: " + score, 8, 18);
 }
 
 function loop() {
